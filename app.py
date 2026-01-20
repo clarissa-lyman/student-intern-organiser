@@ -92,7 +92,7 @@ def filter_students(status_of_students_to_filter,title,context = None):
             st.name AS status,
             s.post_internship_summary_rating_internal,
             s.pronouns,
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
             s.show_key_skill,
             s.mobile
         FROM Students s
@@ -157,7 +157,7 @@ def current_student():
     # Retrieve current students with specific status
     placeholder = ','.join(['?'] * len(status_of_students_current))
     query = '''
-        SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, s.course, st.name, s.post_internship_summary_rating_internal, s.pronouns, CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), s.show_key_skill, s.mobile, s.github_username
+        SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, s.course, st.name, s.post_internship_summary_rating_internal, s.pronouns, CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), s.show_key_skill, s.mobile, s.github_username
         FROM Students s
         LEFT JOIN Statuses st ON s.status_id = st.id
         LEFT JOIN Intakes i ON s.intake_id = i.id
@@ -205,7 +205,7 @@ def download_empty_emails():
         SELECT
             s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, s.course,
             st.name AS status, s.post_internship_summary_rating_internal,s.pronouns, 
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), s.wehi_email, s.mobile, s.github_username
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), s.wehi_email, s.mobile, s.github_username
         FROM Students s 
         LEFT JOIN Projects ON s.project_id = p.id
         LEFT JOIN internal_eval_levels lvl ON s.pre_internship_internal_eval_level_id = lvl.id
@@ -331,7 +331,7 @@ def add_to_github():
     query = '''
         SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, 
         s.course, st.name AS status, s.post_internship_summary_rating_internal, s.pronouns,
-        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
         s.wehi_email, s.mobile, s.github_username
         FROM Students s
         LEFT JOIN Intakes i ON s.intake_id = i.id
@@ -395,7 +395,7 @@ def quick_review():
         SELECT
             s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake,
             s.course,st.name AS status, s.post_internship_summary_rating_internal, s.pronouns,
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
             s.show_key_skill, s.mobile
         FROM Students s
         LEFT JOIN Intakes i ON s.intake_id = i.id
@@ -457,7 +457,7 @@ def email_ack():
     query = '''
         SELECT
             s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake,  s.course,
-            st.name AS status, CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+            st.name AS status, CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
             s.pronouns, s.pre_internship_summary_recommendation_internal, s.show_key_skill, s.mobile
         FROM Students s
         LEFT JOIN Intakes i ON s.intake_id = i.id
@@ -709,7 +709,7 @@ def assigned_projects(intake_type=None):
                 SELECT
                     s.intern_id,
                     s.full_name,
-                    p.name,
+                    s.project_id,
                     s.pronouns,
                     st.name AS status,
                     s.cover_letter_projects,
@@ -718,7 +718,6 @@ def assigned_projects(intake_type=None):
                     s.course,
                     s.show_key_skill
                 FROM Students s
-                LEFT JOIN Projects p ON s.project_id = p.id
                 LEFT JOIN Statuses st ON s.status_id = st.id
                 LEFT JOIN internal_eval_levels lvl ON s.pre_internship_internal_eval_level_id = lvl.id
                 WHERE s.intake_id = ?
@@ -873,7 +872,7 @@ def pre_int_st_evaluation(intern_id):
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
                 s.hours_per_week, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
                 s.pre_internship_enthusiasm, s.pre_internship_experience, s.pre_internship_communication, 
                 s.pre_internship_adaptable, s.pre_internship_problem_solver, s.post_internship_comments, 
@@ -932,7 +931,7 @@ def student_evaluation(intern_id):
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
                 s.hours_per_week, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
                 s.pre_internship_enthusiasm, s.pre_internship_experience, s.pre_internship_communication, 
                 s.pre_internship_adaptable, s.pre_internship_problem_solver, s.post_internship_comments, 
@@ -1005,7 +1004,7 @@ def feedback(intern_id):
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
                 s.hours_per_week, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
                 s.pre_internship_enthusiasm, s.pre_internship_experience, s.pre_internship_communication, 
                 s.pre_internship_adaptable, s.pre_internship_problem_solver, s.post_internship_comments, 
@@ -1053,7 +1052,7 @@ def feedback_table(intern_id):
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
                 s.hours_per_week, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
                 s.pre_internship_enthusiasm, s.pre_internship_experience, s.pre_internship_communication, 
                 s.pre_internship_adaptable, s.pre_internship_problem_solver, s.post_internship_comments, 
@@ -1089,7 +1088,7 @@ def download_key_attributes():
     cursor.execute('''
         SELECT s.full_name, s.pronunciation, p.name, st.name, s.mobile, s.email, 
                 s.start_date, s.end_date, s.hours_per_week, s.pronouns, 
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
                 i.name AS intake, s.course 
         FROM Students s 
         LEFT JOIN Statuses st ON s.status_id = st.id
@@ -1179,7 +1178,7 @@ def get_student_by_id(intern_id):
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
                 s.hours_per_week, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
                 s.pre_internship_enthusiasm, s.pre_internship_experience, s.pre_internship_communication, 
                 s.pre_internship_adaptable, s.pre_internship_problem_solver, s.post_internship_comments, 
@@ -1624,7 +1623,7 @@ def index_new_intake():
     query = '''
         SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, 
         s.course, st.name AS status, s.post_internship_summary_rating_internal, s.pronouns,
-        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
         s.show_key_skill, s.mobile
         FROM Students s
         LEFT JOIN Intakes i ON s.intake_id = i.id
@@ -1667,7 +1666,7 @@ def index_outstanding():
     query = '''
         SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, 
         s.course, st.name AS status, s.post_internship_summary_rating_internal, s.pronouns,
-        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
         s.show_key_skill, s.mobile
         FROM Students s
         LEFT JOIN Projects p ON s.project_id = p.id
@@ -1711,7 +1710,7 @@ def index_current():
     query = '''
         SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, 
         s.course, st.name AS status, s.post_internship_summary_rating_internal, s.pronouns,
-        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+        CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
         s.show_key_skill, s.mobile, s.github_username
         FROM Students s
         LEFT JOIN Projects p ON s.project_id = p.id
@@ -1752,7 +1751,7 @@ def index():
             st.name AS status,
             s.post_internship_summary_rating_internal,
             s.pronouns,
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
             s.show_key_skill,
             s.mobile
         FROM Students s
@@ -1801,7 +1800,7 @@ def student(intern_id):
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
                 s.hours_per_week, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''), 
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
                 s.pre_internship_enthusiasm, s.pre_internship_experience, s.pre_internship_communication, 
                 s.pre_internship_adaptable, s.pre_internship_problem_solver, s.post_internship_comments, 
@@ -2255,7 +2254,7 @@ def students_by_intake(intake_name):
             st.name AS status,
             s.post_internship_summary_rating_internal,
             s.pronouns,
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
             s.show_key_skill,
             s.mobile,
             s.github_username
@@ -2311,7 +2310,7 @@ def finished_students_by_intake(intake_name):
         SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, 
                 i.name AS intake, s.course, st.name AS status, 
                 s.post_internship_summary_rating_internal, s.pronouns,
-                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+                CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
                 s.show_key_skill, s.mobile, s.github_username
         FROM Students s
         LEFT JOIN Intakes i ON s.intake_id = i.id
@@ -2471,7 +2470,7 @@ def project_students(id):
             st.name AS status,
             s.post_internship_summary_rating_internal,
             s.pronouns,
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
             s.show_key_skill,
             s.mobile
         FROM Students s
@@ -2524,7 +2523,7 @@ def project_finished_students(id):
             st.name AS status,
             s.post_internship_summary_rating_internal,
             s.pronouns,
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
             s.show_key_skill,
             s.mobile
         FROM Students s
@@ -2579,7 +2578,7 @@ def project_current_students(id):
             st.name AS status,
             s.post_internship_summary_rating_internal,
             s.pronouns,
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' - ' || COALESCE(lvl.name, ''),
+            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''),
             s.show_key_skill,
             s.mobile
         FROM Students s
