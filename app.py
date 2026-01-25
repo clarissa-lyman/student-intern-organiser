@@ -1176,7 +1176,7 @@ def get_student_by_id(intern_id):
     cursor.execute('''SELECT s.intern_id, s.full_name, s.pronouns, st.name, s.email, s.mobile, s.course, s.course_major, 
                 s.link_to_application_doc, s.read_student_handbook, s.read_student_projects, s.cover_letter_projects, 
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
-                s.hours_per_week, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
+                s.hours_per_week,s.intake_id, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
                 CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
@@ -1213,7 +1213,7 @@ def edit_student(intern_id):
         
         # Convert status name to status_id
         status_name = request.form['status']
-        intake_name = request.form['intake']
+        intake_id = int(request.form['intake_id'])  
         project_name = request.form['project']
         
         conn = sqlite3.connect(db_path)
@@ -1221,10 +1221,6 @@ def edit_student(intern_id):
         cursor.execute('SELECT id FROM Statuses WHERE name = ?', (status_name,))
         status_id_result = cursor.fetchone()
         status_id = status_id_result[0] if status_id_result else None
-        
-        cursor.execute('SELECT id FROM Intakes WHERE name = ?', (intake_name,))
-        intake_id_result = cursor.fetchone()
-        intake_id = intake_id_result[0] if intake_id_result else None
         
         cursor.execute('SELECT id FROM Projects WHERE name = ?', (project_name,))
         project_id_result = cursor.fetchone()
@@ -1241,7 +1237,7 @@ def edit_student(intern_id):
             'course': request.form['course'],
             'course_major': request.form['course_major'],
             'github_username': request.form['github_username'],
-            'intake_id': intake_id,
+            'intake_id': intake_id, 
             'project_id': project_id,
             'start_date': request.form['start_date'],
             'end_date': request.form['end_date'],
