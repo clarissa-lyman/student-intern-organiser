@@ -698,10 +698,9 @@ def assigned_projects(intake_type=None):
             students = cursor.fetchall()
 
             cursor.execute('SELECT * FROM Statuses')
-            statuses = cursor.fetchall()
+            statuses = {row[0]: row[1] for row in cursor.fetchall()}
 
-            status_of_students_to_filter = [3,4,5,6,7,8,9,10,11,12,13,14]
-            status_id_list = [row[0] for row in statuses if row[0] in status_of_students_to_filter]
+            status_id_list = [3,4,5,6,7,8,9,10,11,12,13,14]
 
             # Retrieve student data from the database
             # Prepare the SQL query with a placeholder for the statuses filter
@@ -719,11 +718,10 @@ def assigned_projects(intake_type=None):
                     s.course,
                     s.show_key_skill
                 FROM Students s
-                LEFT JOIN Statuses st ON s.status_id = st.id
                 LEFT JOIN internal_eval_levels lvl ON s.pre_internship_internal_eval_level_id = lvl.id
                 WHERE s.intake_id = ?
                 AND s.status_id IN ({})
-                ORDER BY st.id DESC, s.pre_internship_internal_eval_level_id ASC
+                ORDER BY s.status_id DESC, s.pre_internship_internal_eval_level_id ASC
             '''.format(','.join(['?'] * len(status_id_list)))
 
 
