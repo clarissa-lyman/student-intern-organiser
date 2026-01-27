@@ -711,6 +711,7 @@ def assigned_projects(intake_type=None):
                     s.full_name,
                     s.project_id,
                     s.pronouns,
+                    p.name, 
                     st.name AS status,
                     s.cover_letter_projects,
                     s.pre_internship_internal_eval_level_id,
@@ -761,6 +762,8 @@ def assigned_projects(intake_type=None):
 def update_project_assignment():
     try:
         data = request.get_json()
+        print("update_project_assignment payload:", data)
+
         intern_id = data['internId']
         new_project_id = data['projectId']
 
@@ -891,7 +894,8 @@ def pre_int_st_evaluation(intern_id):
 
     # Close the database connection
     conn.close()
-    pronoun = student[2]
+    pronoun = str(student[3] or "")
+
 
     # Split the pronoun into multiple parts using the '/' delimiter
     #he/him/his or she/her or they/them/their
@@ -1024,7 +1028,8 @@ def feedback(intern_id):
     # Close the database connection
     conn.close()
     # Retrieve the pronoun from the database
-    pronoun = student[2]
+    pronoun = str(student[3] or "")
+
     # Split the pronoun into multiple parts using the '/' delimiter
     pronoun_parts = pronoun.split('/')
 
