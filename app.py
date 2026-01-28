@@ -719,6 +719,8 @@ def assigned_projects(intake_type=None):
                     s.show_key_skill
                 FROM Students s
                 LEFT JOIN internal_eval_levels lvl ON s.pre_internship_internal_eval_level_id = lvl.id
+                LEFT JOIN projects p ON s.project_id = p.id
+                LEFT JOIN statuses st on s.status_id = st.id
                 WHERE s.intake_id = ?
                 AND s.status_id IN ({})
                 ORDER BY s.status_id DESC, s.pre_internship_internal_eval_level_id ASC
