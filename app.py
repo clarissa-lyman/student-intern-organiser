@@ -135,107 +135,6 @@ def get_empty_users(condition):
 def menu_page():
     return render_template('menu_page.html')
 
-@app.route('/current_student')
-def current_student():
-    # Connect to the SQLite database
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    # Retrieve current student statuses and projects
-    cursor.execute('SELECT * FROM Statuses')
-    statuses = cursor.fetchall()
-
-    cursor.execute('SELECT * FROM Projects')
-    projects = cursor.fetchall()
-
-    cursor.execute('SELECT id FROM Intakes where status  = "current"')
-    intake_current = cursor.fetchall()[0][0]
-
-    # Define current student status IDs
-    status_of_students_current = [10, 11, 12, 13]
-
-    # Retrieve current students with specific status
-    placeholder = ','.join(['?'] * len(status_of_students_current))
-    query = '''
-        SELECT s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, s.course, st.name, s.post_internship_summary_rating_internal, s.pronouns, CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), s.show_key_skill, s.mobile, s.github_username
-        FROM Students s
-        LEFT JOIN Statuses st ON s.status_id = st.id
-        LEFT JOIN Intakes i ON s.intake_id = i.id
-        LEFT JOIN Projects p ON s.project_id = p.id
-        LEFT JOIN internal_eval_levels lvl ON s.pre_internship_internal_eval_level_id = lvl.id
-        WHERE s.intake_id = ? AND s.status_id IN ({}) ORDER BY st.id ASC
-    '''.format(','.join(['?'] * len(status_of_students_current)))
-
-
-    # Execute the query with the statuses list
-    cursor.execute(query, [intake_current] + status_of_students_current)
-    students = cursor.fetchall()
-
-    # Close the database connection
-    conn.close()
-
-    # Title for the page
-
-    # Render the HTML page with all data
-    return render_template('current_empty_email.html', students=students, statuses=statuses, projects=projects, empty_email_users=students)
-
-
-@app.route('/download_empty_emails')
-def download_empty_emails():
-    # Connect to the SQLite database
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    # Retrieve current student statuses and projects
-    cursor.execute('SELECT * FROM Statuses')
-    statuses = cursor.fetchall()
-
-    cursor.execute('SELECT * FROM Projects')
-    projects = cursor.fetchall()
-
-    cursor.execute('SELECT id FROM Intakes where status  = "current"')
-    intake_current = cursor.fetchall()[0][0]
-
-    # Define current student status IDs
-    status_of_students_current = [10, 11, 12, 13]
-    status_id_list = [row[0] for row in statuses if row[0] in status_of_students_current] 
-    # Retrieve current students with specific status
-    placeholder = ','.join(['?'] * len(status_id_list))
-    query = f'''
-        SELECT
-            s.intern_id, s.full_name, s.email, s.pronunciation, p.name, i.name AS intake, s.course,
-            st.name AS status, s.post_internship_summary_rating_internal,s.pronouns, 
-            CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), s.wehi_email, s.mobile, s.github_username
-        FROM Students s 
-        LEFT JOIN Projects ON s.project_id = p.id
-        LEFT JOIN internal_eval_levels lvl ON s.pre_internship_internal_eval_level_id = lvl.id
-        LEFT JOIN Intakes i ON s.intake_id = i.id
-        LEFT JOIN Statuses st ON s.status_id = st.id
-        WHERE s.intake_id = ?
-        AND s.status_id IN ({placeholder})
-        AND (s.wehi_email IS NULL OR s.wehi_email NOT LIKE '%@wehi.edu.au%')
-        ORDER BY st.name ASC
-    '''.format(','.join(['?'] * len(status_id_list)))
-
-
-    # Execute the query with the statuses list
-    cursor.execute(query, [intake_current] + status_id_list)
-    empty_email_users = cursor.fetchall()
-    selected_columns = [ (user[0], user[1], user[2], '') for user in empty_email_users ]
-    si = io.StringIO()
-    cw = csv.writer(si)
-    cw.writerow(['User ID', 'Name', 'Email', 'WEHI_Email'])
-    cw.writerows(selected_columns)
-
-    output = si.getvalue()
-    si.close()
-
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-disposition":
-                 "attachment; filename=empty_email_users.csv"})
-
 def update_students_by_criteria(criteria, update_fields):
     # Check if criteria and update_fields are not empty
     if not criteria or not update_fields:
@@ -698,9 +597,10 @@ def assigned_projects(intake_type=None):
             students = cursor.fetchall()
 
             cursor.execute('SELECT * FROM Statuses')
-            statuses = {row[0]: row[1] for row in cursor.fetchall()}
+            statuses = cursor.fetchall()
 
-            status_id_list = [3,4,5,6,7,8,9,10,11,12,13,14]
+            status_of_students_to_filter = [3,4,5,6,7,8,9,10,11,12,13,14]
+            status_id_list = [row[0] for row in statuses if row[0] in status_of_students_to_filter]
 
             # Retrieve student data from the database
             # Prepare the SQL query with a placeholder for the statuses filter
@@ -710,7 +610,6 @@ def assigned_projects(intake_type=None):
                     s.full_name,
                     s.project_id,
                     s.pronouns,
-                    p.name, 
                     st.name AS status,
                     s.cover_letter_projects,
                     s.pre_internship_internal_eval_level_id,
@@ -718,12 +617,11 @@ def assigned_projects(intake_type=None):
                     s.course,
                     s.show_key_skill
                 FROM Students s
+                LEFT JOIN Statuses st ON s.status_id = st.id
                 LEFT JOIN internal_eval_levels lvl ON s.pre_internship_internal_eval_level_id = lvl.id
-                LEFT JOIN projects p ON s.project_id = p.id
-                LEFT JOIN statuses st on s.status_id = st.id
                 WHERE s.intake_id = ?
                 AND s.status_id IN ({})
-                ORDER BY s.status_id DESC, s.pre_internship_internal_eval_level_id ASC
+                ORDER BY st.id DESC, s.pre_internship_internal_eval_level_id ASC
             '''.format(','.join(['?'] * len(status_id_list)))
 
 
@@ -762,8 +660,6 @@ def assigned_projects(intake_type=None):
 def update_project_assignment():
     try:
         data = request.get_json()
-        print("update_project_assignment payload:", data)
-
         intern_id = data['internId']
         new_project_id = data['projectId']
 
@@ -894,8 +790,7 @@ def pre_int_st_evaluation(intern_id):
 
     # Close the database connection
     conn.close()
-    pronoun = str(student[3] or "")
-
+    pronoun = student[2]
 
     # Split the pronoun into multiple parts using the '/' delimiter
     #he/him/his or she/her or they/them/their
@@ -1028,8 +923,7 @@ def feedback(intern_id):
     # Close the database connection
     conn.close()
     # Retrieve the pronoun from the database
-    pronoun = str(student[2] or "")
-
+    pronoun = student[2]
     # Split the pronoun into multiple parts using the '/' delimiter
     pronoun_parts = pronoun.split('/')
 
