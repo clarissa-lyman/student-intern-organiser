@@ -10,9 +10,6 @@
 
 {% block content %}
     <h1>Edit pre-internship internal evaluation level</h1>
-    <div class="alert alert-warning" role="alert">
-        ⚠️ <strong>Warning:</strong> This evaluation level is used by existing student records. ID {{ level[0] }} is referenced in filters throughout the application.
-    </div>
     <form method="POST" action="/edit_pre_int_internal_eval_level/{{ level[0] }}">
         <div class="form-group">
             <label for="level_id">Level ID (Read-only):</label>
