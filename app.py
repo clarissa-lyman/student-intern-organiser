@@ -2229,6 +2229,65 @@ def intakes_index():
     return render_template('intakes.html', intakes=intakes, students=students)
 
 
+@app.route('/statuses')
+def statuses_index():
+    # Connect to database and retrieve all status records
+    # Note: Status IDs are referenced throughout the application:
+    #   - IDs 10-13: "Current" students (quick review to interviewed)
+    #   - IDs 1-6: Early-stage applicants
+    #   - IDs 15-21: Finished/unavailable students
+    # Changing IDs will break hardcoded filters in multiple routes
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT id, name FROM Statuses ORDER BY id')
+    statuses = cursor.fetchall()
+    
+    conn.close()
+    return render_template('statuses_index.html', statuses=statuses)
+
+
+@app.route('/add_status', methods=['GET', 'POST'])
+def add_status():
+    if request.method == 'POST':
+        new_name = request.form.get('name')
+
+        # Connect to the database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Insert the new status record into the database
+        cursor.execute('INSERT INTO Statuses (name) VALUES (?)', (new_name,))
+        
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('statuses_index'))
+
+    # If it's a GET request, render the add_status.html template
+    return render_template('add_status.html')
+
+
+@app.route('/edit_status/<int:status_id>', methods=['GET', 'POST'])
+def edit_status(status_id):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        # Handle form submission and update the status record
+        new_name = request.form.get('name')
+        cursor.execute('UPDATE Statuses SET name = ? WHERE id = ?', (new_name, status_id))
+        conn.commit()
+        conn.close()
+        # Redirect to statuses index after saving changes
+        return redirect(url_for('statuses_index'))
+
+    # If it's a GET request, render the edit_status.html template
+    cursor.execute('SELECT * FROM Statuses WHERE id = ?', (status_id,))
+    status_data = cursor.fetchone()
+    conn.close()
+
+    return render_template('edit_status.html', status=status_data)
 
 
 @app.route('/students_by_intake/<path:intake_name>')  # Use <path:> to allow slashes in the parameter
@@ -2340,7 +2399,6 @@ def finished_students_by_intake(intake_name):
 def edit_intake(intake_id):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-
     if request.method == 'POST':
         # Handle form submission and update the intake record in your database
         new_name = request.form.get('name')
@@ -2836,6 +2894,62 @@ def add_eng_interns():
         return redirect(url_for('new_applications'))
 
     return render_template('add_eng_interns.html')
+
+@app.route('/pre_int_internal_eval_level')
+def pre_int_internal_eval_level():
+    # Connect to database and retrieve all pre-internship internal evaluation records
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT id, name FROM Internal_eval_levels ORDER BY id')
+    levels = cursor.fetchall()
+    
+    conn.close()
+    return render_template('internal_eval_level_index.html', levels=levels)
+
+
+@app.route('/add_pre_int_internal_eval_level', methods=['GET', 'POST'])
+def add_pre_int_internal_eval_level():
+    if request.method == 'POST':
+        new_level = request.form.get('name')
+
+        # Connect to the database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # Insert the new level description into the database
+        cursor.execute('INSERT INTO Internal_eval_levels (name) VALUES (?)', (new_level,))
+        
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for('pre_int_internal_eval_level'))
+
+    # If it's a GET request, render the add_internal_eval_level.html template
+    return render_template('add_internal_eval_level.html')
+
+
+@app.route('/edit_pre_int_internal_eval_level/<int:level_id>', methods=['GET', 'POST'])
+def edit_pre_int_internal_eval_level(level_id):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        # Handle form submission and update the level description
+        new_level = request.form.get('name')
+        cursor.execute('UPDATE Internal_eval_levels SET name = ? WHERE id = ?', (new_level, level_id))
+        conn.commit()
+        conn.close()
+        # Redirect to internal evaluation table after saving changes
+        return redirect(url_for('pre_int_internal_eval_level'))
+
+    # If it's a GET request, render the edit_status.html template
+    cursor.execute('SELECT * FROM Internal_eval_levels WHERE id = ?', (level_id,))
+    level = cursor.fetchone()
+    conn.close()
+
+    return render_template('edit_internal_eval_level.html', level=level)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
