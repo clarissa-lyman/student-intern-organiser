@@ -1181,7 +1181,7 @@ def get_student_by_id(intern_id):
     cursor.execute('''SELECT s.intern_id, s.full_name, s.pronouns, st.name, s.email, s.mobile, s.course, s.course_major, 
                 s.link_to_application_doc, s.read_student_handbook, s.read_student_projects, s.cover_letter_projects, 
                 s.cover_letter_concept, s.cover_letter_technical, s.pronunciation, p.name, s.start_date, s.end_date, 
-                s.hours_per_week,s.intake_id, i.name, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
+                s.hours_per_week,s.intake_id, s.supervisor_email, s.wehi_email, s.summary_tech_skills, s.summary_experience, 
                 s.summary_interest_in_projects, s.pre_internship_summary_recommendation_external, 
                 CAST(COALESCE(s.pre_internship_internal_eval_level_id, '') AS TEXT) || ' ' || COALESCE(lvl.name, ''), 
                 s.pre_internship_technical_rating, s.pre_internship_social_rating, s.pre_internship_learning_quickly, 
@@ -1205,8 +1205,8 @@ def get_student_by_id(intern_id):
 def update_student(intern_id, data):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute('UPDATE Students SET github_username = ?, full_name = ?, pronouns = ?, status_id = ?, email = ?, mobile = ?, course = ?, course_major = ?, intake_id = ?, project_id = ?, start_date = ?, end_date = ?, hours_per_week = ?, cover_letter_projects = ?, pronunciation = ?, post_internship_summary_rating_internal = ? WHERE intern_id = ?',
-                   (data['github_username'], data['full_name'], data['pronouns'], data['status_id'], data['email'], data['mobile'], data['course'], data['course_major'], data['intake_id'], data['project_id'], data['start_date'], data['end_date'], data['hours_per_week'], data['cover_letter_projects'],data['pronunciation'],data['post_internship_summary_rating_internal'], intern_id))
+    cursor.execute('UPDATE Students SET full_name = ?, pronouns = ?, status_id = ?, email = ?, mobile = ?, course = ?, course_major = ?, intake_id = ?, project_id = ?, start_date = ?, end_date = ?, hours_per_week = ?, cover_letter_projects = ?, pronunciation = ?, post_internship_summary_rating_internal = ? WHERE intern_id = ?',
+                   (data['full_name'], data['pronouns'], data['status_id'], data['email'], data['mobile'], data['course'], data['course_major'], data['intake_id'], data['project_id'], data['start_date'], data['end_date'], data['hours_per_week'], data['cover_letter_projects'],data['pronunciation'],data['post_internship_summary_rating_internal'], intern_id))
     conn.commit()
     conn.close()
 
@@ -1240,7 +1240,6 @@ def edit_student(intern_id):
             'mobile': request.form['mobile'],
             'course': request.form['course'],
             'course_major': request.form['course_major'],
-            'github_username': request.form['github_username'],
             'intake_id': intake_id, 
             'project_id': project_id,
             'start_date': request.form['start_date'],
@@ -1260,13 +1259,13 @@ def edit_student(intern_id):
 
     else:
         # Retrieve the student record from the database based on the intern_id
-        # Pass the student record, statuses, intakes, and projects to the edit.html template
+        # Pass the student record, statuses, intakes, and projects to the edit_student.html template
         student = get_student_by_id(intern_id)
         statuses = get_statuses()  # Retrieve the list of statuses from the database
         intakes = get_intakes()    # Retrieve the list of intakes from the database
         projects = get_projects()  # Retrieve the list of projects from the database
 
-    return render_template('edit.html', student=student, statuses=statuses, intakes=intakes, projects=projects)
+    return render_template('edit_student.html', student=student, statuses=statuses, intakes=intakes, projects=projects)
 
 
 @app.route('/share_students/<int:project_id>')
@@ -1311,6 +1310,10 @@ def share_students(project_id):
         status_of_students_to_filter = [8, 9, 10, 11, 12, 13]
         status_id_list = [row[0] for row in statuses if row[0] in status_of_students_to_filter]
         placeholders = ",".join(["?"] * len(status_id_list))
+        
+        cursor.execute('SELECT * FROM Projects where id = ?',(project_id,))
+        project = cursor.fetchall()[0][1]
+        print(project)
 
         query = f"""
             SELECT
@@ -2746,8 +2749,8 @@ def update_project_status():
     conn = sqlite3.connect('student_intern_data/student_intern_data.db')
     cursor = conn.cursor()
 
-    for name in project_ids:
-        cursor.execute('UPDATE Projects SET status = ? WHERE name = ?', (new_status, name))
+    for id in project_ids:
+        cursor.execute('UPDATE Projects SET status = ? WHERE id = ?', (new_status, id))
 
     conn.commit()
     conn.close()
